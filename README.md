@@ -1,56 +1,68 @@
-\# Gestor de gastos mensuales
+Gestor de gastos
 
 
 
-Aplicación web full-stack para registrar, visualizar y gestionar gastos.
+Aplicación web para registrar, consultar, editar y eliminar gastos mensuales. Permite organizar los gastos por categorías y consultar un resumen de los registros.
 
 
 
-\## Tecnologías
+Tecnologías utilizadas
 
 
 
-\- \*\*Frontend:\*\* React + TypeScript (Vite)
-
-\- \*\*Backend:\*\* NestJS + TypeScript
-
-\- \*\*Base de datos:\*\* SQLite (con TypeORM y sql.js; se crea sola, no hay que instalar nada)
+React
 
 
 
-\## Requisitos
+TypeScript
 
 
 
-\- Node.js 20 o superior
-
-\- npm
+NestJS
 
 
 
-\## Cómo ejecutarla
+SQLite
 
 
 
-1\. Clonar el repositorio:
+TypeORM
 
 
 
-```bash
+CSS
+
+
+
+Requisitos
+
+
+
+Node.js
+
+
+
+npm
+
+
+
+Instalación
+
+
+
+1\. Clonar el repositorio
+
+
 
 git clone https://github.com/Karoline-7/Gastos-app.git
 
 cd Gastos-app
 
-```
 
 
-
-2\. Backend (terminal 1):
-
+2\. Iniciar el backend
 
 
-```bash
 
 cd backend
 
@@ -58,19 +70,19 @@ npm install
 
 npm run start:dev
 
-```
+
+
+El backend funciona en http://localhost:3000.
 
 
 
-La API queda en `http://localhost:3000`. La base de datos `gastos.db` se crea sola.
+3\. Iniciar el frontend
 
 
 
-3\. Frontend (terminal 2):
+Abrir otra terminal:
 
 
-
-```bash
 
 cd frontend
 
@@ -78,49 +90,147 @@ npm install
 
 npm run dev
 
-```
+
+
+Abrir http://localhost:5173 en el navegador.
 
 
 
-Abrir `http://localhost:5173` en el navegador.
+Funcionalidades
 
 
 
-\## Funcionalidades
+Registrar gastos.
 
 
 
-\- Crear categorías y asignarlas a un gasto
-
-\- Registrar gastos (descripción, monto, fecha y hora, categoría)
-
-\- Listar los gastos y mostrar el total
-
-\- Ordenar haciendo clic en el encabezado "Fecha y Hora"
-
-\- Editar y eliminar gastos
-
-\- Validaciones: monto mayor que cero y campos obligatorios (en el front y en el back)
+Consultar, editar y eliminar gastos.
 
 
 
-\## API
+Crear y asignar categorías.
 
 
 
-| Método | Ruta | Descripción |
+Buscar gastos por descripción.
 
-|---|---|---|
 
-| GET | `/categorias` | Lista las categorías |
 
-| POST | `/categorias` | Crea una categoría |
+Filtrar por categoría.
 
-| GET | `/gastos?orden=asc` o `desc` | Lista los gastos y el total |
 
-| POST | `/gastos` | Crea un gasto |
 
-| PUT | `/gastos/:id` | Edita un gasto |
+Ordenar por fecha, monto, descripción y categoría.
 
-| DELETE | `/gastos/:id` | Elimina un gasto |
+
+
+Navegar entre páginas de resultados.
+
+
+
+Validar los datos ingresados.
+
+
+
+Evitar gastos duplicados.
+
+
+
+Consultar el total y la cantidad de gastos registrados.
+
+
+
+API
+
+
+
+Método
+
+
+
+Ruta
+
+
+
+Función
+
+
+
+GET
+
+
+
+/gastos
+
+
+
+Listar gastos
+
+
+
+POST
+
+
+
+/gastos
+
+
+
+Crear gasto
+
+
+
+PUT
+
+
+
+/gastos/:id
+
+
+
+Actualizar gasto
+
+
+
+DELETE
+
+
+
+/gastos/:id
+
+
+
+Eliminar gasto
+
+
+
+GET
+
+
+
+/categorias
+
+
+
+Listar categorías
+
+
+
+POST
+
+
+
+/categorias
+
+
+
+Crear categoría
+
+
+
+Repositorio
+
+
+
+https://github.com/Karoline-7/Gastos-app
 

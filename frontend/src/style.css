@@ -192,3 +192,80 @@ tr:hover {
 .tabla-contenedor button:last-child:hover {
   background: #fecaca;
 }
+/* ventana de confirmación */
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 20, 60, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+  animation: aparecer 0.15s ease-out;
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 28px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 50px rgba(60, 20, 120, 0.35);
+}
+
+.modal h3 {
+  margin: 0 0 10px;
+  color: #2d1b4e;
+  font-size: 1.3rem;
+}
+
+.modal p {
+  margin: 0 0 24px;
+  color: #5b5570;
+  line-height: 1.5;
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal .modal-botones button {
+  width: auto;
+  margin: 0;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modal .boton-cancelar {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.modal .boton-cancelar:hover {
+  background: #ddd6fe;
+}
+
+.modal .boton-eliminar {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.modal .boton-eliminar:hover {
+  background: #b91c1c;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

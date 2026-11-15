@@ -46,6 +46,7 @@ function App() {
   const [editandoId, setEditandoId] = useState<number | null>(null)
   const [nombreCategoria, setNombreCategoria] = useState('')
   const [orden, setOrden] = useState<'asc' | 'desc'>('desc')
+  const [gastoAEliminar, setGastoAEliminar] = useState<Gasto | null>(null)
 
   useEffect(() => {
     cargarCategorias()
@@ -55,6 +56,18 @@ function App() {
   useEffect(() => {
     cargarGastos()
   }, [orden])
+
+  // con la tecla Escape se cierra la ventana de confirmación
+  useEffect(() => {
+    if (!gastoAEliminar) return
+
+    function alPresionar(e: KeyboardEvent) {
+      if (e.key === 'Escape') setGastoAEliminar(null)
+    }
+
+    window.addEventListener('keydown', alPresionar)
+    return () => window.removeEventListener('keydown', alPresionar)
+  }, [gastoAEliminar])
 
   // cargamos las categorias
   async function cargarCategorias() {
@@ -148,13 +161,12 @@ function App() {
     setMensaje('')
   }
 
-  // eliminamos un gasto
-  async function eliminarGasto(id: number) {
-    const confirmar = window.confirm(
-      '¿Estás segura de que deseas eliminar este gasto?',
-    )
+  // eliminamos el gasto después de confirmar en la ventana
+  async function confirmarEliminar() {
+    if (!gastoAEliminar) return
 
-    if (!confirmar) return
+    const id = gastoAEliminar.id
+    setGastoAEliminar(null)
 
     try {
       const respuesta = await fetch(`http://localhost:3000/gastos/${id}`, {
@@ -331,7 +343,7 @@ function App() {
 
                       <button
                         type="button"
-                        onClick={() => eliminarGasto(gasto.id)}
+                        onClick={() => setGastoAEliminar(gasto)}
                       >
                         Eliminar
                       </button>
@@ -343,6 +355,45 @@ function App() {
           </div>
         )}
       </section>
+
+      {gastoAEliminar && (
+        <div className="modal-fondo" onClick={() => setGastoAEliminar(null)}>
+          <div
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="titulo-modal">¿Eliminar este gasto?</h3>
+            <p>
+              Se eliminará <strong>{gastoAEliminar.descripcion}</strong> por{' '}
+              <strong>
+                ${Number(gastoAEliminar.monto).toLocaleString('es-CO')}
+              </strong>
+              . Esta acción no se puede deshacer.
+            </p>
+
+            <div className="modal-botones">
+              <button
+                type="button"
+                className="boton-cancelar"
+                onClick={() => setGastoAEliminar(null)}
+                autoFocus
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="boton-eliminar"
+                onClick={confirmarEliminar}
+              >
+                Sí, eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

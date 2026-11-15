@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import './style.css'
@@ -15,7 +16,7 @@ interface Gasto {
   categoria: Categoria
 }
 
-// convierte una fecha ISO (UTC) al formato que entiende <input type="datetime-local">
+// convierte una fecha ISO (UTC) al formato que entiende el input
 function aInputLocal(iso: string) {
   const d = new Date(iso)
   const desfase = d.getTimezoneOffset() * 60000
@@ -45,19 +46,30 @@ function App() {
   const [mensaje, setMensaje] = useState('')
   const [editandoId, setEditandoId] = useState<number | null>(null)
   const [nombreCategoria, setNombreCategoria] = useState('')
-  const [orden, setOrden] = useState<'asc' | 'desc'>('desc')
+
+  // estados para filtros, ordenamiento y paginacion
+  const [orden, setOrden] = useState<'ASC' | 'DESC'>('DESC')
+  const [ordenarPor, setOrdenarPor] = useState('fecha')
+  const [filtroCategoria, setFiltroCategoria] = useState('')
+  const [busqueda, setBusqueda] = useState('')
+  const [pagina, setPagina] = useState(1)
+  const [limite] = useState(5)
+  const [total, setTotal] = useState(0)
+  const [cantidad, setCantidad] = useState(0)
+  const [totalPaginas, setTotalPaginas] = useState(1)
+
   const [gastoAEliminar, setGastoAEliminar] = useState<Gasto | null>(null)
 
   useEffect(() => {
     cargarCategorias()
   }, [])
 
-  // cada vez que cambia el orden, se vuelven a pedir los gastos
+  // actualizamos los gastos cuando cambia un filtro o el orden
   useEffect(() => {
     cargarGastos()
-  }, [orden])
+  }, [orden, ordenarPor, filtroCategoria, busqueda, pagina])
 
-  // con la tecla Escape se cierra la ventana de confirmación
+  // con la tecla Escape se cierra la ventana de confirmacion
   useEffect(() => {
     if (!gastoAEliminar) return
 
@@ -76,11 +88,33 @@ function App() {
     setCategorias(datos)
   }
 
-  // cargamos los gastos (el back los devuelve ordenados por fecha y hora)
+  // cargamos los gastos con sus filtros
   async function cargarGastos() {
-    const respuesta = await fetch(`http://localhost:3000/gastos?orden=${orden}`)
+    const parametros = new URLSearchParams()
+
+    parametros.append('orden', orden)
+    parametros.append('ordenarPor', ordenarPor)
+    parametros.append('pagina', String(pagina))
+    parametros.append('limite', String(limite))
+
+    if (filtroCategoria !== '') {
+      parametros.append('categoriaId', filtroCategoria)
+    }
+
+    if (busqueda.trim() !== '') {
+      parametros.append('buscar', busqueda.trim())
+    }
+
+    const respuesta = await fetch(
+      `http://localhost:3000/gastos?${parametros.toString()}`
+    )
+
     const datos = await respuesta.json()
+
     setGastos(datos.gastos)
+    setTotal(datos.total)
+    setCantidad(datos.cantidad)
+    setTotalPaginas(datos.totalPaginas)
   }
 
   // registramos una categoria
@@ -145,6 +179,7 @@ function App() {
       )
 
       limpiarFormulario()
+      setPagina(1)
       await cargarGastos()
     } catch {
       setMensaje('Error al guardar el gasto')
@@ -161,7 +196,7 @@ function App() {
     setMensaje('')
   }
 
-  // eliminamos el gasto después de confirmar en la ventana
+  // eliminamos el gasto despues de confirmar en la ventana
   async function confirmarEliminar() {
     if (!gastoAEliminar) return
 
@@ -178,7 +213,12 @@ function App() {
       }
 
       setMensaje('Gasto eliminado correctamente')
-      await cargarGastos()
+
+      if (gastos.length === 1 && pagina > 1) {
+        setPagina(pagina - 1)
+      } else {
+        await cargarGastos()
+      }
     } catch {
       setMensaje('Error al eliminar el gasto')
     }
@@ -193,15 +233,29 @@ function App() {
     setEditandoId(null)
   }
 
-  // cambiamos entre orden ascendente y descendente
-  function cambiarOrden() {
-    setOrden(orden === 'desc' ? 'asc' : 'desc')
+  // cambiamos el orden de una columna
+  function cambiarOrdenPor(campo: string) {
+    if (ordenarPor === campo) {
+      setOrden(orden === 'ASC' ? 'DESC' : 'ASC')
+    } else {
+      setOrdenarPor(campo)
+      setOrden('ASC')
+    }
+
+    setPagina(1)
   }
 
-  const total = gastos.reduce(
-    (suma, gasto) => suma + Number(gasto.monto),
-    0,
-  )
+  // cambiamos la categoria del filtro
+  function cambiarFiltroCategoria(valor: string) {
+    setFiltroCategoria(valor)
+    setPagina(1)
+  }
+
+  // cambiamos el texto de busqueda
+  function cambiarBusqueda(valor: string) {
+    setBusqueda(valor)
+    setPagina(1)
+  }
 
   return (
     <div className="contenedor">
@@ -213,12 +267,12 @@ function App() {
       <section className="resumen">
         <div className="tarjeta">
           <h3>Dinero registrado</h3>
-          <p>${total.toLocaleString('es-CO')}</p>
+          <p>${Number(total).toLocaleString('es-CO')}</p>
         </div>
 
         <div className="tarjeta">
           <h3>Total de gastos</h3>
-          <p>{gastos.length}</p>
+          <p>{cantidad}</p>
         </div>
 
         <div className="tarjeta">
@@ -307,24 +361,80 @@ function App() {
       <section className="seccion">
         <h2>Gastos registrados</h2>
 
+        <div className="filtros-gastos">
+          <div>
+            <label>Buscar por descripción</label>
+            <input
+              type="text"
+              value={busqueda}
+              onChange={(e) => cambiarBusqueda(e.target.value)}
+              placeholder="Ejemplo: almuerzo"
+            />
+          </div>
+
+          <div>
+            <label>Filtrar por categoría</label>
+            <select
+              value={filtroCategoria}
+              onChange={(e) => cambiarFiltroCategoria(e.target.value)}
+            >
+              <option value="">Todas las categorías</option>
+              {categorias.map((categoria) => (
+                <option key={categoria.id} value={categoria.id}>
+                  {categoria.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {gastos.length === 0 ? (
-          <p>No hay gastos registrados todavía.</p>
+          <p>No hay gastos que coincidan con la búsqueda.</p>
         ) : (
           <div className="tabla-contenedor">
             <table>
               <thead>
                 <tr>
-                  <th>Descripción</th>
-                  <th>Monto</th>
                   <th
-                    onClick={cambiarOrden}
+                    onClick={() => cambiarOrdenPor('descripcion')}
                     style={{ cursor: 'pointer' }}
-                    aria-sort={orden === 'asc' ? 'ascending' : 'descending'}
-                    title="Haz clic para cambiar el orden"
+                    title="Ordenar por descripción"
                   >
-                    Fecha y Hora {orden === 'asc' ? '▲' : '▼'}
+                    Descripción
+                    {ordenarPor === 'descripcion' &&
+                      (orden === 'ASC' ? ' ▲' : ' ▼')}
                   </th>
-                  <th>Categoría</th>
+
+                  <th
+                    onClick={() => cambiarOrdenPor('monto')}
+                    style={{ cursor: 'pointer' }}
+                    title="Ordenar por monto"
+                  >
+                    Monto
+                    {ordenarPor === 'monto' &&
+                      (orden === 'ASC' ? ' ▲' : ' ▼')}
+                  </th>
+
+                  <th
+                    onClick={() => cambiarOrdenPor('fecha')}
+                    style={{ cursor: 'pointer' }}
+                    title="Ordenar por fecha"
+                  >
+                    Fecha y Hora
+                    {ordenarPor === 'fecha' &&
+                      (orden === 'ASC' ? ' ▲' : ' ▼')}
+                  </th>
+
+                  <th
+                    onClick={() => cambiarOrdenPor('categoria')}
+                    style={{ cursor: 'pointer' }}
+                    title="Ordenar por categoría"
+                  >
+                    Categoría
+                    {ordenarPor === 'categoria' &&
+                      (orden === 'ASC' ? ' ▲' : ' ▼')}
+                  </th>
+
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -354,6 +464,28 @@ function App() {
             </table>
           </div>
         )}
+
+        <div className="paginacion">
+          <button
+            type="button"
+            onClick={() => setPagina(pagina - 1)}
+            disabled={pagina <= 1}
+          >
+            Anterior
+          </button>
+
+          <span>
+            Página {pagina} de {totalPaginas}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => setPagina(pagina + 1)}
+            disabled={pagina >= totalPaginas}
+          >
+            Siguiente
+          </button>
+        </div>
       </section>
 
       {gastoAEliminar && (
@@ -383,6 +515,7 @@ function App() {
               >
                 Cancelar
               </button>
+
               <button
                 type="button"
                 className="boton-eliminar"

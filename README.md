@@ -38,9 +38,9 @@ Aplicación web full-stack para registrar, visualizar y gestionar gastos.
 
 ```bash
 
-git clone URL\_DEL\_REPOSITORIO
+git clone https://github.com/Karoline-7/Gastos-app.git
 
-cd gastos-app
+cd Gastos-app
 
 ```
 
